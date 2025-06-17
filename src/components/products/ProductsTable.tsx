@@ -1,13 +1,13 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import ProductForm from './ProductForm';
 
 interface Product {
   id: string;
@@ -73,10 +73,7 @@ const ProductsTable = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Products</CardTitle>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Product
-          </Button>
+          <ProductForm onProductAdded={fetchProducts} />
         </div>
         <div className="flex items-center space-x-2">
           <Search className="h-4 w-4 text-gray-400" />
