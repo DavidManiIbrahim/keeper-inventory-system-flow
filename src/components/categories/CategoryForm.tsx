@@ -24,14 +24,24 @@ const CategoryForm = ({ onCategoryAdded }: CategoryFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.name.trim()) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Category name is required",
+      });
+      return;
+    }
+
     setLoading(true);
 
     try {
       const { error } = await supabase
         .from('categories')
         .insert([{
-          name: formData.name,
-          description: formData.description || null
+          name: formData.name.trim(),
+          description: formData.description.trim() || null
         }]);
 
       if (error) throw error;
@@ -41,6 +51,7 @@ const CategoryForm = ({ onCategoryAdded }: CategoryFormProps) => {
         description: "Category added successfully",
       });
 
+      // Reset form
       setFormData({
         name: '',
         description: ''
@@ -58,6 +69,14 @@ const CategoryForm = ({ onCategoryAdded }: CategoryFormProps) => {
     }
   };
 
+  const handleCancel = () => {
+    setFormData({
+      name: '',
+      description: ''
+    });
+    setOpen(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -70,29 +89,33 @@ const CategoryForm = ({ onCategoryAdded }: CategoryFormProps) => {
         <DialogHeader>
           <DialogTitle>Add New Category</DialogTitle>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="name">Category Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-              required
-            />
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="name">Category Name *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter category name"
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter category description (optional)"
+                rows={3}
+              />
+            </div>
           </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Optional category description"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2">
-            <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+          <div className="flex justify-end space-x-3 pt-4">
+            <Button type="button" variant="outline" onClick={handleCancel} disabled={loading}>
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
