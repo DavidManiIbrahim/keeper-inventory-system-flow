@@ -1,12 +1,12 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Search } from 'lucide-react';
+import { Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import SupplierForm from './SupplierForm';
 
 interface Supplier {
   id: string;
@@ -57,10 +57,7 @@ const SuppliersTable = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <CardTitle>Suppliers</CardTitle>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Supplier
-          </Button>
+          <SupplierForm onSupplierAdded={fetchSuppliers} />
         </div>
         <div className="flex items-center space-x-2">
           <Search className="h-4 w-4 text-gray-400" />
@@ -100,7 +97,7 @@ const SuppliersTable = () => {
           </Table>
         )}
       </CardContent>
-    </Card>
+    </Dialog>
   );
 };
 
