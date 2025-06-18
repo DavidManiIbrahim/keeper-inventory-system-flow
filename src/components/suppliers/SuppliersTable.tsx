@@ -97,7 +97,7 @@ const SuppliersTable = () => {
           </Table>
         )}
       </CardContent>
-    </Dialog>
+    </Card>
   );
 };
 
