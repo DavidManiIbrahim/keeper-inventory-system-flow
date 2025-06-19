@@ -56,8 +56,11 @@ const Index = () => {
     switch (activeTab) {
       case 'dashboard':
         return (
-          <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+          <div className="space-y-8">
+            <div className="text-center lg:text-left">
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">Dashboard</h1>
+              <p className="mt-2 text-lg text-gray-600">Welcome to your inventory management system</p>
+            </div>
             <DashboardStats />
           </div>
         );
@@ -98,8 +101,11 @@ const Index = () => {
         );
       default:
         return (
-          <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+          <div className="space-y-8">
+            <div className="text-center lg:text-left">
+              <h1 className="text-3xl lg:text-4xl font-bold text-gray-900">Dashboard</h1>
+              <p className="mt-2 text-lg text-gray-600">Welcome to your inventory management system</p>
+            </div>
             <DashboardStats />
           </div>
         );
