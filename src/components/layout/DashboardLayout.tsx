@@ -53,7 +53,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 w-full">
       {/* Mobile sidebar backdrop */}
       {sidebarOpen && (
         <div 
@@ -102,8 +102,8 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
 
         <div className="absolute bottom-0 w-full p-4 border-t">
           <div className="flex items-center">
-            <div className="flex-1">
-              <p className="text-sm font-medium text-gray-900">{user?.email}</p>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
             </div>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="h-4 w-4" />
@@ -113,7 +113,7 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
       </div>
 
       {/* Main content */}
-      <div className="lg:pl-64">
+      <div className="lg:pl-64 w-full">
         <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
           <button
             type="button"
@@ -124,8 +124,8 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
           </button>
         </div>
 
-        <main className="py-10">
-          <div className="px-4 sm:px-6 lg:px-8">
+        <main className="py-6 lg:py-10">
+          <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
             {children}
           </div>
         </main>
