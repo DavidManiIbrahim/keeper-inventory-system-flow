@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import PurchaseOrderForm from './PurchaseOrderForm';
 
 interface PurchaseOrder {
   id: string;
@@ -21,6 +23,7 @@ interface PurchaseOrder {
 const PurchaseOrdersTable = () => {
   const [orders, setOrders] = useState<PurchaseOrder[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -60,53 +63,70 @@ const PurchaseOrdersTable = () => {
     }
   };
 
+  const handleOrderAdded = () => {
+    setIsDialogOpen(false);
+    fetchOrders();
+  };
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <CardTitle>Purchase Orders</CardTitle>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Order
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Order
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Create Purchase Order</DialogTitle>
+              </DialogHeader>
+              <PurchaseOrderForm onSuccess={handleOrderAdded} />
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="text-center py-4">Loading...</div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Order Number</TableHead>
-                <TableHead>Supplier</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Order Date</TableHead>
-                <TableHead>Expected Delivery</TableHead>
-                <TableHead>Total Amount</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {orders.map((order) => (
-                <TableRow key={order.id}>
-                  <TableCell className="font-medium">{order.order_number}</TableCell>
-                  <TableCell>{order.suppliers?.name || 'N/A'}</TableCell>
-                  <TableCell>
-                    <Badge className={getStatusColor(order.status)}>
-                      {order.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {order.order_date ? new Date(order.order_date).toLocaleDateString() : 'N/A'}
-                  </TableCell>
-                  <TableCell>
-                    {order.expected_delivery_date ? new Date(order.expected_delivery_date).toLocaleDateString() : 'N/A'}
-                  </TableCell>
-                  <TableCell>{order.total_amount ? `$${order.total_amount}` : 'N/A'}</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[120px]">Order Number</TableHead>
+                  <TableHead className="min-w-[150px]">Supplier</TableHead>
+                  <TableHead className="min-w-[100px]">Status</TableHead>
+                  <TableHead className="min-w-[120px]">Order Date</TableHead>
+                  <TableHead className="min-w-[140px]">Expected Delivery</TableHead>
+                  <TableHead className="min-w-[120px]">Total Amount</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {orders.map((order) => (
+                  <TableRow key={order.id}>
+                    <TableCell className="font-medium">{order.order_number}</TableCell>
+                    <TableCell>{order.suppliers?.name || 'N/A'}</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(order.status)}>
+                        {order.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      {order.order_date ? new Date(order.order_date).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell>
+                      {order.expected_delivery_date ? new Date(order.expected_delivery_date).toLocaleDateString() : 'N/A'}
+                    </TableCell>
+                    <TableCell>{order.total_amount ? `$${order.total_amount}` : 'N/A'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>

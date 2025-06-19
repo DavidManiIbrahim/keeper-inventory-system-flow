@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import StockTransactionForm from './StockTransactionForm';
 
 interface StockTransaction {
   id: string;
@@ -23,6 +25,7 @@ interface StockTransaction {
 const StockTransactionsTable = () => {
   const [transactions, setTransactions] = useState<StockTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -62,53 +65,70 @@ const StockTransactionsTable = () => {
     }
   };
 
+  const handleTransactionAdded = () => {
+    setIsDialogOpen(false);
+    fetchTransactions();
+  };
+
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <CardTitle>Stock Transactions</CardTitle>
-          <Button>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Transaction
-          </Button>
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Transaction
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Add Stock Transaction</DialogTitle>
+              </DialogHeader>
+              <StockTransactionForm onSuccess={handleTransactionAdded} />
+            </DialogContent>
+          </Dialog>
         </div>
       </CardHeader>
       <CardContent>
         {loading ? (
           <div className="text-center py-4">Loading...</div>
         ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Product</TableHead>
-                <TableHead>SKU</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Quantity</TableHead>
-                <TableHead>Unit Price</TableHead>
-                <TableHead>Total Value</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead>Date</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {transactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell className="font-medium">{transaction.products.name}</TableCell>
-                  <TableCell>{transaction.products.sku}</TableCell>
-                  <TableCell>
-                    <Badge className={getTransactionTypeColor(transaction.transaction_type)}>
-                      {transaction.transaction_type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{transaction.quantity}</TableCell>
-                  <TableCell>{transaction.unit_price ? `$${transaction.unit_price}` : 'N/A'}</TableCell>
-                  <TableCell>{transaction.total_value ? `$${transaction.total_value}` : 'N/A'}</TableCell>
-                  <TableCell>{transaction.reference_number || 'N/A'}</TableCell>
-                  <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="min-w-[150px]">Product</TableHead>
+                  <TableHead className="min-w-[100px]">SKU</TableHead>
+                  <TableHead className="min-w-[100px]">Type</TableHead>
+                  <TableHead className="min-w-[80px]">Quantity</TableHead>
+                  <TableHead className="min-w-[100px]">Unit Price</TableHead>
+                  <TableHead className="min-w-[120px]">Total Value</TableHead>
+                  <TableHead className="min-w-[120px]">Reference</TableHead>
+                  <TableHead className="min-w-[100px]">Date</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {transactions.map((transaction) => (
+                  <TableRow key={transaction.id}>
+                    <TableCell className="font-medium">{transaction.products.name}</TableCell>
+                    <TableCell>{transaction.products.sku}</TableCell>
+                    <TableCell>
+                      <Badge className={getTransactionTypeColor(transaction.transaction_type)}>
+                        {transaction.transaction_type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{transaction.quantity}</TableCell>
+                    <TableCell>{transaction.unit_price ? `$${transaction.unit_price}` : 'N/A'}</TableCell>
+                    <TableCell>{transaction.total_value ? `$${transaction.total_value}` : 'N/A'}</TableCell>
+                    <TableCell>{transaction.reference_number || 'N/A'}</TableCell>
+                    <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         )}
       </CardContent>
     </Card>
