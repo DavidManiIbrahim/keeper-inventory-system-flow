@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ProductForm from './ProductForm';
-import ProductEditForm from './ProductEditForm';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 
 interface Product {
@@ -35,7 +34,6 @@ const ProductsTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { toast } = useToast();
@@ -119,11 +117,6 @@ const ProductsTable = () => {
     fetchProducts();
   };
 
-  const handleProductUpdated = () => {
-    setEditingProduct(null);
-    fetchProducts();
-  };
-
   return (
     <>
       <Card>
@@ -174,8 +167,8 @@ const ProductsTable = () => {
                         <TableCell>{product.sku}</TableCell>
                         <TableCell>{product.categories?.name || 'No Category'}</TableCell>
                         <TableCell>{product.suppliers?.name || 'No Supplier'}</TableCell>
-                        <TableCell>${product.unit_price}</TableCell>
-                        <TableCell>${product.cost_price}</TableCell>
+                        <TableCell>₦{product.unit_price}</TableCell>
+                        <TableCell>₦{product.cost_price}</TableCell>
                         <TableCell>
                           <div className="flex flex-col gap-1">
                             <span>{product.quantity_in_stock}</span>
@@ -190,22 +183,13 @@ const ProductsTable = () => {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setEditingProduct(product)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setDeletingProduct(product)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setDeletingProduct(product)}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     );
@@ -216,15 +200,6 @@ const ProductsTable = () => {
           )}
         </CardContent>
       </Card>
-
-      {editingProduct && (
-        <ProductEditForm
-          product={editingProduct}
-          open={!!editingProduct}
-          onOpenChange={(open) => !open && setEditingProduct(null)}
-          onProductUpdated={handleProductUpdated}
-        />
-      )}
 
       <DeleteDialog
         open={!!deletingProduct}

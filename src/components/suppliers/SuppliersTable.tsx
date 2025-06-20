@@ -5,10 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Edit, Trash2 } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import SupplierForm from './SupplierForm';
-import SupplierEditForm from './SupplierEditForm';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 
 interface Supplier {
@@ -24,7 +23,6 @@ const SuppliersTable = () => {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingSupplier, setEditingSupplier] = useState<Supplier | null>(null);
   const [deletingSupplier, setDeletingSupplier] = useState<Supplier | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { toast } = useToast();
@@ -130,22 +128,13 @@ const SuppliersTable = () => {
                     <TableCell>{supplier.phone || 'N/A'}</TableCell>
                     <TableCell>{supplier.address || 'N/A'}</TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingSupplier(supplier)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeletingSupplier(supplier)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDeletingSupplier(supplier)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -154,15 +143,6 @@ const SuppliersTable = () => {
           )}
         </CardContent>
       </Card>
-
-      {editingSupplier && (
-        <SupplierEditForm
-          supplier={editingSupplier}
-          open={!!editingSupplier}
-          onOpenChange={(open) => !open && setEditingSupplier(null)}
-          onSupplierUpdated={fetchSuppliers}
-        />
-      )}
 
       <DeleteDialog
         open={!!deletingSupplier}
