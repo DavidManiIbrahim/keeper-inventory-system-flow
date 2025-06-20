@@ -5,10 +5,9 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, Edit, Trash2 } from 'lucide-react';
+import { Search, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import CategoryForm from './CategoryForm';
-import CategoryEditForm from './CategoryEditForm';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 
 interface Category {
@@ -22,7 +21,6 @@ const CategoriesTable = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deletingCategory, setDeletingCategory] = useState<Category | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { toast } = useToast();
@@ -123,22 +121,13 @@ const CategoriesTable = () => {
                     <TableCell>{category.description || 'No description'}</TableCell>
                     <TableCell>{new Date(category.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setEditingCategory(category)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeletingCategory(category)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setDeletingCategory(category)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -147,15 +136,6 @@ const CategoriesTable = () => {
           )}
         </CardContent>
       </Card>
-
-      {editingCategory && (
-        <CategoryEditForm
-          category={editingCategory}
-          open={!!editingCategory}
-          onOpenChange={(open) => !open && setEditingCategory(null)}
-          onCategoryUpdated={fetchCategories}
-        />
-      )}
 
       <DeleteDialog
         open={!!deletingCategory}
