@@ -1,31 +1,41 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Edit, Trash2 } from 'lucide-react';
+import { Plus, Edit, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import ProductForm from './ProductForm';
+import ProductEditForm from './ProductEditForm';
 import { DeleteDialog } from '@/components/ui/delete-dialog';
 
 interface Product {
   id: string;
   name: string;
+  description: string | null;
   sku: string;
-  quantity_in_stock: number;
   unit_price: number;
-  status: 'active' | 'discontinued' | 'out_of_stock';
-  categories?: { name: string };
-  suppliers?: { name: string };
+  cost_price: number;
+  quantity_in_stock: number;
+  minimum_stock_level: number | null;
+  maximum_stock_level: number | null;
+  category_id: string | null;
+  supplier_id: string | null;
+  barcode: string | null;
+  image_url: string | null;
+  status: string;
+  categories: { name: string } | null;
+  suppliers: { name: string } | null;
 }
 
 const ProductsTable = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const { toast } = useToast();
@@ -88,94 +98,133 @@ const ProductsTable = () => {
     }
   };
 
-  const filteredProducts = products.filter(product =>
-    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.sku.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
   const getStatusColor = (status: string) => {
-    switch (status) {
+    switch (status.toLowerCase()) {
       case 'active': return 'bg-green-100 text-green-800';
+      case 'inactive': return 'bg-yellow-100 text-yellow-800';
       case 'discontinued': return 'bg-red-100 text-red-800';
-      case 'out_of_stock': return 'bg-yellow-100 text-yellow-800';
       default: return 'bg-gray-100 text-gray-800';
     }
+  };
+
+  const getStockStatus = (current: number, min: number | null) => {
+    if (min && current <= min) {
+      return { label: 'Low Stock', color: 'bg-red-100 text-red-800' };
+    }
+    return { label: 'In Stock', color: 'bg-green-100 text-green-800' };
+  };
+
+  const handleProductAdded = () => {
+    setIsDialogOpen(false);
+    fetchProducts();
+  };
+
+  const handleProductUpdated = () => {
+    setEditingProduct(null);
+    fetchProducts();
   };
 
   return (
     <>
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <CardTitle>Products</CardTitle>
-            <ProductForm onProductAdded={fetchProducts} />
-          </div>
-          <div className="flex items-center space-x-2">
-            <Search className="h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search products..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="max-w-sm"
-            />
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Product
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Add New Product</DialogTitle>
+                </DialogHeader>
+                <ProductForm onSuccess={handleProductAdded} />
+              </DialogContent>
+            </Dialog>
           </div>
         </CardHeader>
         <CardContent>
           {loading ? (
             <div className="text-center py-4">Loading...</div>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Supplier</TableHead>
-                  <TableHead>Stock</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[100px]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>{product.sku}</TableCell>
-                    <TableCell>{product.categories?.name || 'N/A'}</TableCell>
-                    <TableCell>{product.suppliers?.name || 'N/A'}</TableCell>
-                    <TableCell>{product.quantity_in_stock}</TableCell>
-                    <TableCell>${product.unit_price}</TableCell>
-                    <TableCell>
-                      <Badge className={getStatusColor(product.status)}>
-                        {product.status.replace('_', ' ')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => toast({ title: "Coming Soon", description: "Product editing will be available soon." })}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => setDeletingProduct(product)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[150px]">Name</TableHead>
+                    <TableHead className="min-w-[100px]">SKU</TableHead>
+                    <TableHead className="min-w-[120px]">Category</TableHead>
+                    <TableHead className="min-w-[120px]">Supplier</TableHead>
+                    <TableHead className="min-w-[100px]">Unit Price</TableHead>
+                    <TableHead className="min-w-[100px]">Cost Price</TableHead>
+                    <TableHead className="min-w-[120px]">Stock</TableHead>
+                    <TableHead className="min-w-[100px]">Status</TableHead>
+                    <TableHead className="min-w-[100px]">Actions</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {products.map((product) => {
+                    const stockStatus = getStockStatus(product.quantity_in_stock, product.minimum_stock_level);
+                    return (
+                      <TableRow key={product.id}>
+                        <TableCell className="font-medium">{product.name}</TableCell>
+                        <TableCell>{product.sku}</TableCell>
+                        <TableCell>{product.categories?.name || 'No Category'}</TableCell>
+                        <TableCell>{product.suppliers?.name || 'No Supplier'}</TableCell>
+                        <TableCell>${product.unit_price}</TableCell>
+                        <TableCell>${product.cost_price}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <span>{product.quantity_in_stock}</span>
+                            <Badge className={stockStatus.color}>
+                              {stockStatus.label}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge className={getStatusColor(product.status)}>
+                            {product.status}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setEditingProduct(product)}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setDeletingProduct(product)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </div>
           )}
         </CardContent>
       </Card>
+
+      {editingProduct && (
+        <ProductEditForm
+          product={editingProduct}
+          open={!!editingProduct}
+          onOpenChange={(open) => !open && setEditingProduct(null)}
+          onProductUpdated={handleProductUpdated}
+        />
+      )}
 
       <DeleteDialog
         open={!!deletingProduct}

@@ -33,8 +33,8 @@ const AuthPage = () => {
       if (error) throw error;
 
       toast({
-        title: "Account created!",
-        description: "Check your email to verify your account.",
+        title: "Account created successfully!",
+        description: "You can now sign in with your credentials.",
       });
     } catch (error: any) {
       toast({
