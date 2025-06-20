@@ -43,6 +43,8 @@ interface ProductEditFormProps {
   onProductUpdated: () => void;
 }
 
+type ProductStatus = 'active' | 'discontinued' | 'out_of_stock';
+
 const ProductEditForm = ({ product, open, onOpenChange, onProductUpdated }: ProductEditFormProps) => {
   const [loading, setLoading] = useState(false);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -60,7 +62,7 @@ const ProductEditForm = ({ product, open, onOpenChange, onProductUpdated }: Prod
     supplier_id: product.supplier_id || '',
     barcode: product.barcode || '',
     image_url: product.image_url || '',
-    status: product.status
+    status: product.status as ProductStatus
   });
   const { toast } = useToast();
 
@@ -268,14 +270,14 @@ const ProductEditForm = ({ product, open, onOpenChange, onProductUpdated }: Prod
 
             <div>
               <Label htmlFor="status">Status</Label>
-              <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+              <Select value={formData.status} onValueChange={(value: ProductStatus) => setFormData(prev => ({ ...prev, status: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
                   <SelectItem value="discontinued">Discontinued</SelectItem>
+                  <SelectItem value="out_of_stock">Out of Stock</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -141,7 +141,7 @@ const ProductsTable = () => {
                 <DialogHeader>
                   <DialogTitle>Add New Product</DialogTitle>
                 </DialogHeader>
-                <ProductForm onSuccess={handleProductAdded} />
+                <ProductForm onProductAdded={handleProductAdded} />
               </DialogContent>
             </Dialog>
           </div>
