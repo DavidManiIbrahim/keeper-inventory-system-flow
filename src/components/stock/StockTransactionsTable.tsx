@@ -1,11 +1,10 @@
-
 import { useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Edit, Trash2 } from 'lucide-react';
+import { Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import StockTransactionForm from './StockTransactionForm';
@@ -155,27 +154,18 @@ const StockTransactionsTable = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>{transaction.quantity}</TableCell>
-                      <TableCell>{transaction.unit_price ? `$${transaction.unit_price}` : 'N/A'}</TableCell>
-                      <TableCell>{transaction.total_value ? `$${transaction.total_value}` : 'N/A'}</TableCell>
+                      <TableCell>{transaction.unit_price ? `₦${transaction.unit_price}` : 'N/A'}</TableCell>
+                      <TableCell>{transaction.total_value ? `₦${transaction.total_value}` : 'N/A'}</TableCell>
                       <TableCell>{transaction.reference_number || 'N/A'}</TableCell>
                       <TableCell>{new Date(transaction.created_at).toLocaleDateString()}</TableCell>
                       <TableCell>
-                        <div className="flex space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => toast({ title: "Coming Soon", description: "Transaction editing will be available soon." })}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeletingTransaction(transaction)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setDeletingTransaction(transaction)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </TableCell>
                     </TableRow>
                   ))}
