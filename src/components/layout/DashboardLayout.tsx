@@ -1,18 +1,9 @@
 
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { User } from '@supabase/supabase-js';
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { 
-  Package, 
-  Users, 
-  ShoppingCart, 
-  BarChart3, 
-  Settings, 
-  LogOut,
-  Menu,
-  X
-} from 'lucide-react';
+import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
+import { Menu, Package, Users, ShoppingCart, Truck, FileText, BarChart3, LogOut } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 interface DashboardLayoutProps {
@@ -22,23 +13,22 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutProps) => {
-  const [user, setUser] = useState<User | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { toast } = useToast();
 
-  useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setUser(user);
-    });
-  }, []);
-
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
+    try {
+      await supabase.auth.signOut();
       toast({
-        variant: "destructive",
+        title: "Signed out successfully",
+        description: "You have been logged out of your account.",
+      });
+    } catch (error) {
+      console.error('Error signing out:', error);
+      toast({
         title: "Error",
-        description: error.message,
+        description: "Failed to sign out. Please try again.",
+        variant: "destructive",
       });
     }
   };
@@ -46,87 +36,86 @@ const DashboardLayout = ({ children, activeTab, onTabChange }: DashboardLayoutPr
   const navigation = [
     { id: 'dashboard', name: 'Dashboard', icon: BarChart3 },
     { id: 'products', name: 'Products', icon: Package },
-    { id: 'categories', name: 'Categories', icon: Package },
-    { id: 'suppliers', name: 'Suppliers', icon: Users },
-    { id: 'stock', name: 'Stock Transactions', icon: ShoppingCart },
-    { id: 'purchase-orders', name: 'Purchase Orders', icon: ShoppingCart },
+    { id: 'categories', name: 'Categories', icon: FileText },
+    { id: 'suppliers', name: 'Suppliers', icon: Truck },
+    { id: 'stock', name: 'Stock', icon: ShoppingCart },
+    { id: 'purchase-orders', name: 'Purchase Orders', icon: Users },
   ];
 
+  const SidebarContent = () => (
+    <div className="flex h-full flex-col">
+      <div className="flex h-14 items-center border-b px-4 lg:h-16 lg:px-6">
+        <h2 className="text-lg font-semibold text-gray-900">Inventory</h2>
+      </div>
+      <nav className="flex-1 space-y-1 px-2 py-4 lg:px-4">
+        {navigation.map((item) => {
+          const Icon = item.icon;
+          return (
+            <button
+              key={item.id}
+              onClick={() => {
+                onTabChange(item.id);
+                setSidebarOpen(false);
+              }}
+              className={`group flex w-full items-center rounded-md px-2 py-2 text-sm font-medium transition-colors ${
+                activeTab === item.id
+                  ? 'bg-blue-100 text-blue-900'
+                  : 'text-gray-700 hover:bg-gray-100 hover:text-gray-900'
+              }`}
+            >
+              <Icon className="mr-3 h-5 w-5 flex-shrink-0" />
+              {item.name}
+            </button>
+          );
+        })}
+      </nav>
+      <div className="border-t p-4">
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          onClick={handleSignOut}
+        >
+          <LogOut className="mr-2 h-4 w-4" />
+          Sign Out
+        </Button>
+      </div>
+    </div>
+  );
+
   return (
-    <div className="min-h-screen bg-gray-50 w-full">
-      {/* Mobile sidebar backdrop */}
-      {sidebarOpen && (
-        <div 
-          className="fixed inset-0 bg-gray-600 bg-opacity-75 z-40 lg:hidden"
-          onClick={() => setSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg transform ${
-        sidebarOpen ? 'translate-x-0' : '-translate-x-full'
-      } transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0`}>
-        
-        <div className="flex items-center justify-between h-16 px-4 border-b">
-          <h1 className="text-xl font-bold text-gray-900">IMS</h1>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden"
-          >
-            <X className="h-6 w-6" />
-          </button>
-        </div>
-
-        <nav className="mt-5 px-2 space-y-1">
-          {navigation.map((item) => {
-            const Icon = item.icon;
-            return (
-              <button
-                key={item.id}
-                onClick={() => {
-                  onTabChange(item.id);
-                  setSidebarOpen(false);
-                }}
-                className={`w-full group flex items-center px-2 py-2 text-sm font-medium rounded-md ${
-                  activeTab === item.id
-                    ? 'bg-gray-100 text-gray-900'
-                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                }`}
-              >
-                <Icon className="mr-3 h-5 w-5" />
-                {item.name}
-              </button>
-            );
-          })}
-        </nav>
-
-        <div className="absolute bottom-0 w-full p-4 border-t">
-          <div className="flex items-center">
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{user?.email}</p>
-            </div>
-            <Button variant="ghost" size="sm" onClick={handleSignOut}>
-              <LogOut className="h-4 w-4" />
-            </Button>
+    <div className="flex h-screen overflow-hidden bg-gray-50">
+      {/* Desktop Sidebar */}
+      <div className="hidden lg:flex lg:flex-shrink-0">
+        <div className="flex w-64 flex-col">
+          <div className="flex min-h-0 flex-1 flex-col border-r border-gray-200 bg-white">
+            <SidebarContent />
           </div>
         </div>
       </div>
 
-      {/* Main content */}
-      <div className="lg:pl-64 w-full">
-        <div className="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-x-4 border-b border-gray-200 bg-white px-4 shadow-sm sm:gap-x-6 sm:px-6 lg:px-8">
-          <button
-            type="button"
-            className="-m-2.5 p-2.5 text-gray-700 lg:hidden"
-            onClick={() => setSidebarOpen(true)}
+      {/* Mobile sidebar */}
+      <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+        <SheetTrigger asChild>
+          <Button
+            variant="outline"
+            size="icon"
+            className="lg:hidden fixed top-4 left-4 z-50"
           >
             <Menu className="h-6 w-6" />
-          </button>
-        </div>
+          </Button>
+        </SheetTrigger>
+        <SheetContent side="left" className="w-64 p-0">
+          <SidebarContent />
+        </SheetContent>
+      </Sheet>
 
-        <main className="py-6 lg:py-10">
-          <div className="px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-            {children}
+      {/* Main content */}
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <main className="flex-1 overflow-auto">
+          <div className="p-4 lg:p-8 pt-16 lg:pt-8">
+            <div className="mx-auto max-w-7xl">
+              {children}
+            </div>
           </div>
         </main>
       </div>
