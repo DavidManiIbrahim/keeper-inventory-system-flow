@@ -92,28 +92,38 @@ const ProductForm = ({ onProductAdded }: ProductFormProps) => {
         .from('products')
         .insert([productData]);
 
-      if (error) throw error;
+      if (error) {
+        if (error.message.includes('row-level security')) {
+          toast({
+            variant: "destructive",
+            title: "Permission Denied",
+            description: "You don't have permission to add products. Only admins and managers can perform this action.",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: "Product added successfully",
+        });
 
-      toast({
-        title: "Success",
-        description: "Product added successfully",
-      });
-
-      setFormData({
-        name: '',
-        sku: '',
-        description: '',
-        unit_price: '',
-        cost_price: '',
-        quantity_in_stock: '',
-        minimum_stock_level: '',
-        maximum_stock_level: '',
-        category_id: '',
-        supplier_id: '',
-        barcode: '',
-        status: 'active'
-      });
-      onProductAdded();
+        setFormData({
+          name: '',
+          sku: '',
+          description: '',
+          unit_price: '',
+          cost_price: '',
+          quantity_in_stock: '',
+          minimum_stock_level: '',
+          maximum_stock_level: '',
+          category_id: '',
+          supplier_id: '',
+          barcode: '',
+          status: 'active'
+        });
+        onProductAdded();
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",

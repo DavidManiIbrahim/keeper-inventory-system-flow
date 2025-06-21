@@ -36,11 +36,27 @@ const ProductsTable = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [deletingProduct, setDeletingProduct] = useState<Product | null>(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [userRole, setUserRole] = useState<string>('');
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProducts();
+    fetchUserRole();
   }, []);
+
+  const fetchUserRole = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data, error } = await supabase.rpc('get_user_role', { user_id: user.id });
+        if (!error) {
+          setUserRole(data || 'employee');
+        }
+      }
+    } catch (error) {
+      console.log('Error fetching user role:', error);
+    }
+  };
 
   const fetchProducts = async () => {
     try {
@@ -76,15 +92,24 @@ const ProductsTable = () => {
         .delete()
         .eq('id', deletingProduct.id);
 
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Product deleted successfully",
-      });
-
-      setDeletingProduct(null);
-      fetchProducts();
+      if (error) {
+        if (error.message.includes('row-level security')) {
+          toast({
+            variant: "destructive",
+            title: "Permission Denied",
+            description: "You don't have permission to delete products. Only admins and managers can perform this action.",
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: "Product deleted successfully",
+        });
+        setDeletingProduct(null);
+        fetchProducts();
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -117,26 +142,30 @@ const ProductsTable = () => {
     fetchProducts();
   };
 
+  const canManageProducts = userRole === 'admin' || userRole === 'manager';
+
   return (
     <>
       <Card>
         <CardHeader>
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <CardTitle>Products</CardTitle>
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Product
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Add New Product</DialogTitle>
-                </DialogHeader>
-                <ProductForm onProductAdded={handleProductAdded} />
-              </DialogContent>
-            </Dialog>
+            {canManageProducts && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Product
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Add New Product</DialogTitle>
+                  </DialogHeader>
+                  <ProductForm onProductAdded={handleProductAdded} />
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -155,7 +184,7 @@ const ProductsTable = () => {
                     <TableHead className="min-w-[100px]">Cost Price</TableHead>
                     <TableHead className="min-w-[120px]">Stock</TableHead>
                     <TableHead className="min-w-[100px]">Status</TableHead>
-                    <TableHead className="min-w-[100px]">Actions</TableHead>
+                    {canManageProducts && <TableHead className="min-w-[100px]">Actions</TableHead>}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -182,15 +211,17 @@ const ProductsTable = () => {
                             {product.status}
                           </Badge>
                         </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => setDeletingProduct(product)}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
+                        {canManageProducts && (
+                          <TableCell>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setDeletingProduct(product)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </TableCell>
+                        )}
                       </TableRow>
                     );
                   })}
